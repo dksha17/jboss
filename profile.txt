@@ -1,0 +1,160 @@
+# /etc/profile
+
+# System wide environment and startup programs, for login setup
+# Functions and aliases go in /etc/bashrc
+
+pathmunge () {
+	if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
+	   if [ "$2" = "after" ] ; then
+	      PATH=$PATH:$1
+	   else
+	      PATH=$1:$PATH
+	   fi
+	fi
+}
+
+# ksh workaround
+if [ -z "$EUID" -a -x /usr/bin/id ]; then 
+	EUID=`id -u`
+	UID=`id -ru`
+fi
+
+# Path manipulation
+if [ "$EUID" = "0" ]; then
+	pathmunge /sbin
+	pathmunge /usr/sbin
+	pathmunge /usr/local/sbin
+fi
+
+# No core files by default
+ulimit -S -c 0 > /dev/null 2>&1
+
+if [ -x /usr/bin/id ]; then
+	USER="`id -un`"
+	LOGNAME=$USER
+	MAIL="/var/spool/mail/$USER"
+fi
+
+HOSTNAME=`/bin/hostname`
+HISTSIZE=1000
+
+if [ -z "$INPUTRC" -a ! -f "$HOME/.inputrc" ]; then
+    INPUTRC=/etc/inputrc
+fi
+
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE INPUTRC
+
+for i in /etc/profile.d/*.sh ; do
+    if [ -r "$i" ]; then
+        if [ "$PS1" ]; then
+            . $i
+        else
+            . $i >/dev/null 2>&1
+        fi
+    fi
+done
+
+unset i
+unset pathmunge
+
+# Root and admin users to login on Console only
+
+ADMIN="/etc/admin_users"
+
+
+
+# Check to see if user has a tty
+
+tty -s
+
+if [ "$?" = 0 ]
+
+then
+
+   NOT_A_TTY=""
+
+else
+
+   NOT_A_TTY=TRUE
+
+fi
+
+
+
+if [ "$NOT_A_TTY" = "" ]
+
+then
+
+   USER="`who am i | awk '{print $1}'`"
+
+   # Any user that is logged in through cron or inittab won't show up with who.
+
+   # Who only shows users that are in wtmp and utmp.  We will therefor skip
+
+   # any user that comes up with a blank name.
+
+   if [ "$USER" != "" ]
+
+   then
+
+      grep -v "^#" $ADMIN | grep $USER > /dev/null
+
+      if [ $? -eq 0  -a "`tty`" != "/dev/console" ]; then
+
+        echo ""
+
+        echo "Login Failed - Must login as another user first !!! "
+
+        echo ""
+
+        exit
+
+       fi
+
+     if [[ "$USER" != "root" && -a /etc/rootonly ]]; then
+
+        cat /etc/rootonly
+
+        echo ""
+
+        echo "ROOT ONLY ACCESS -- /etc/rootonly present"
+
+        echo ""
+
+        exit
+
+     fi
+
+     if [[ "`tty`" != "/dev/console" && -a /etc/nologin ]]; then
+
+        cat /etc/nologin
+
+        echo ""
+
+        echo "CONSOLE ONLY ACCESS -- /etc/nologin present"
+
+        echo ""
+
+        exit
+
+     fi
+
+     if [[ "`tty`" = "/dev/console" && -a /etc/nologin ]]; then
+
+        echo ""
+
+        echo "WARNING - - CONSOLE ONLY ACCESS -- /etc/nologin present"
+
+        echo "WARNING - - CONSOLE ONLY ACCESS -- /etc/nologin present"
+
+        echo "WARNING - - CONSOLE ONLY ACCESS -- /etc/nologin present"
+
+        echo ""
+
+     fi
+
+   fi
+
+fi
+                                         
+                            

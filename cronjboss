@@ -1,0 +1,29 @@
+#******************************************************************************
+# s m t w th f s
+# 0 1 2 3 4  5 6
+# Min    Hour   Date   Month  Day
+#[0-59] [0-23] [1-31] [1-12] [0-6]  [NOTE: 0=SUN,1=MON,2=TUE,3=WED,4=THU,5=FRI,6=SAT]
+#******************************************************************************
+#
+# LOG ROTATION
+#5 0 * * * /usr/sbin/logrotate  -s /home/jboss/logrotate/var/logrotate.status  /home/jboss/logrotate/conf/logrotate.conf >>/home/jboss/logs/logrotate.log 2>&1
+
+# ANALOG CONFIG
+#14 0 * * * /home/jboss/analog/config/runAnalog.sh >/dev/null 2>&1
+
+# PURGE SCRIPTS
+05 01 * * *  /appl/software/wildfly8.2/bin/jboss_cleanuplogs >/dev/null 2>&1
+45 01 * * *  /appl/software/wildfly8.2/bin/earpurge >/dev/null 2>&1
+#05 01 * * *  /appl/software/wildfly10.1/bin/jboss_cleanuplogs >/dev/null 2>&1
+#45 01 * * *  /appl/software/wildfly10.1/bin/earpurge >/dev/null 2>&1
+#05 02 * * *  /usr/local/jboss7.2/bin/jboss_cleanuplogs >/dev/null 2>&1
+#45 02 * * *  /usr/local/jboss7.2/bin/earpurge >/dev/null 2>&1
+
+
+# 3 3 * * *  /usr/bin/find /appl/analog/reports/*  -name "tryprpmtsvc*" -mtime +180 -type f -print |xargs /bin/rm -f >/dev/null 2>&1
+
+# Create a sanitized copy of the standalone.xml files and lock down files that include passwords
+#00 04 * * *  /home/jboss/scripts/copystandalone >/dev/null 2>&1
+10 04 * * *  /home/jboss/scripts/copystandalone_WildFly82 >/dev/null 2>&1
+#10 04 * * *  /home/jboss/scripts/copystandalone_WildFly10 >/dev/null 2>&1
+
